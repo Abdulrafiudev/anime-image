@@ -1,20 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const STATUSES = [
-  "Reading your photo…",
-  "Sketching the linework…",
-  "Blocking in cel colors…",
-  "Adding anime shading…",
-  "Polishing the details…",
-  "Almost there…",
+  "Mapping your features…",
+  "Inking the first frame…",
+  "Mixing the cel palette…",
+  "Directing the highlights…",
+  "Rendering the final frame…",
+  "Adding the last details…",
 ];
 
 /**
- * A tasteful loading state: a smoothly-easing progress bar that approaches (but
- * never reaches) 100% until the real result lands, plus rotating status text.
- * Reduced-motion users get the same information without the animation.
+ * A lively anime-production sequence with an orbiting brand mark, animated
+ * frame cards, rotating status copy, and segmented progress.
  */
 export function LoadingState() {
   const [progress, setProgress] = useState(6);
@@ -25,7 +25,6 @@ export function LoadingState() {
       typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Ease toward ~92% so it feels like real work, then hold.
     const tick = setInterval(
       () => {
         setProgress((p) => (p >= 92 ? p : p + Math.max(0.5, (92 - p) * 0.06)));
@@ -43,45 +42,78 @@ export function LoadingState() {
     };
   }, []);
 
+  const activeSegments = Math.ceil((progress / 100) * 14);
+
   return (
     <div
-      className="flex flex-col items-center justify-center gap-6 py-16"
+      className="flex flex-col items-center justify-center gap-7 py-12 sm:py-16"
       role="status"
       aria-live="polite"
     >
-      <div className="grid h-16 w-16 place-items-center rounded-2xl bg-lavender text-violet">
-        <svg
-          className="animate-spin"
-          width="30"
-          height="30"
-          viewBox="0 0 24 24"
-          fill="none"
-        >
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" opacity="0.25" />
-          <path
-            d="M21 12a9 9 0 0 0-9-9"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
+      <div className="anime-loader-stage" aria-hidden>
+        <div className="anime-loader-orbit">
+          <span className="anime-loader-dot anime-loader-dot-violet" />
+          <span className="anime-loader-dot anime-loader-dot-cyan" />
+          <span className="anime-loader-dot anime-loader-dot-coral" />
+        </div>
+        <span className="anime-loader-slash anime-loader-slash-one" />
+        <span className="anime-loader-slash anime-loader-slash-two" />
+        <span className="anime-loader-slash anime-loader-slash-three" />
+        <span className="anime-loader-card anime-loader-card-back" />
+        <div className="anime-loader-card anime-loader-card-front">
+          <Image
+            src="/images/anime-studio-mark.png"
+            alt=""
+            width={58}
+            height={58}
+            className="h-[58px] w-[58px] object-contain"
           />
-        </svg>
+        </div>
       </div>
 
-      <div className="w-full max-w-xs text-center">
-        <p className="font-display font-bold text-ink">Converting your photo</p>
-        <p className="mt-1 h-5 text-sm text-muted transition-all">
+      <div className="w-full max-w-sm text-center">
+        <span className="inline-flex items-center gap-2 rounded-full border border-violet/25 bg-lavender px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-violet">
+          <span className="anime-loader-live-dot h-1.5 w-1.5 rounded-full bg-coral" />
+          Studio rendering
+        </span>
+        <p className="font-display mt-3 text-lg font-bold text-ink">
+          Your anime frame is taking shape
+        </p>
+        <p
+          key={statusIdx}
+          className="anime-loader-status mt-1 h-5 text-sm text-muted"
+        >
           {STATUSES[statusIdx]}
         </p>
 
-        <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-lavender">
-          <div
-            className="h-full rounded-full bg-violet transition-[width] duration-300 ease-out"
-            style={{ width: `${progress}%` }}
-          />
+        <div className="mt-5 flex h-2.5 w-full gap-1" aria-hidden>
+          {Array.from({ length: 14 }, (_, index) => {
+            const active = index < activeSegments;
+            const color =
+              index % 3 === 0
+                ? "bg-violet"
+                : index % 3 === 1
+                  ? "bg-cyan"
+                  : "bg-coral";
+
+            return (
+              <span
+                key={index}
+                className={[
+                  "h-full flex-1 rounded-full transition-all duration-300",
+                  active ? `${color} scale-y-100` : "scale-y-75 bg-line",
+                ].join(" ")}
+              />
+            );
+          })}
         </div>
-        <p className="mt-2 tabular-nums text-xs text-muted">
-          {Math.round(progress)}%
-        </p>
+
+        <div className="mt-3 flex items-center justify-between text-xs text-muted">
+          <span>Frame progress</span>
+          <span className="rounded-full border border-line bg-white px-2.5 py-1 font-bold tabular-nums text-violet">
+            {Math.round(progress)}%
+          </span>
+        </div>
       </div>
     </div>
   );

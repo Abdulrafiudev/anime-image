@@ -35,13 +35,12 @@ export function createFalProvider(): ImageProvider {
     async generate({
       imageDataUrl,
       params,
-      apiKey,
       signal,
     }: GenerateInput): Promise<GenerateResult> {
-      const key = apiKey?.trim() || process.env.FAL_KEY?.trim();
+      const key = process.env.FAL_KEY?.trim();
       if (!key) {
         throw new ProviderError(
-          "Image provider is not configured. Set FAL_KEY on the server (or enable bring-your-own-key).",
+          "Image provider is not configured. Set FAL_KEY on the server.",
           500,
         );
       }

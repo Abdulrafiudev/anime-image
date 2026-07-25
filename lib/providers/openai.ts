@@ -30,13 +30,12 @@ export function createOpenAIProvider(): ImageProvider {
     async generate({
       imageDataUrl,
       params,
-      apiKey,
       signal,
     }: GenerateInput): Promise<GenerateResult> {
-      const key = apiKey?.trim() || process.env.OPENAI_API_KEY?.trim();
+      const key = process.env.OPENAI_API_KEY?.trim();
       if (!key) {
         throw new ProviderError(
-          "Image provider is not configured. Set OPENAI_API_KEY on the server (or enable bring-your-own-key).",
+          "Image provider is not configured. Set OPENAI_API_KEY on the server.",
           500,
         );
       }

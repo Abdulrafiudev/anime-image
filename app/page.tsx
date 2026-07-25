@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Header } from "@/components/Header";
@@ -9,7 +10,6 @@ import { Controls } from "@/components/Controls";
 import { LoadingState } from "@/components/LoadingState";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { ResultActions } from "@/components/ResultActions";
-import { AdvancedSettings } from "@/components/AdvancedSettings";
 import {
   DEFAULT_CONTROLS,
   type Controls as ControlsState,
@@ -30,7 +30,6 @@ export default function Home() {
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [byokKey, setByokKey] = useState("");
 
   const abortRef = useRef<AbortController | null>(null);
   const stageRef = useRef<HTMLElement>(null);
@@ -79,7 +78,6 @@ export default function Home() {
         presetId,
         controls,
         signal: controller.signal,
-        byokKey: byokKey.trim() || undefined,
       });
       setResult(url);
       setStatus("done");
@@ -93,7 +91,7 @@ export default function Home() {
     } finally {
       abortRef.current = null;
     }
-  }, [image, presetId, controls, byokKey, scrollToStage]);
+  }, [image, presetId, controls, scrollToStage]);
 
   const handleCancel = useCallback(() => {
     abortRef.current?.abort();
@@ -214,8 +212,6 @@ export default function Home() {
                 <Controls value={controls} onChange={setControls} />
               </div>
 
-              <AdvancedSettings byokKey={byokKey} onKeyChange={setByokKey} />
-
               {error && (
                 <div
                   role="alert"
@@ -250,9 +246,7 @@ export default function Home() {
                 )}
               </motion.button>
               <p className="text-center text-xs text-muted">
-                {byokKey.trim()
-                  ? "Using your own key (direct, in-memory)"
-                  : "Secure server proxy · your key stays private"}
+                Secure server proxy · your key stays private
               </p>
             </section>
           </div>
@@ -283,10 +277,24 @@ function Landing({
           <span className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-3.5 py-1.5 text-xs font-medium text-violet">
             Photo → anime in seconds
           </span>
-          <h1 className="font-display mt-6 text-4xl font-bold leading-[1.05] text-ink sm:text-6xl">
+          <h1 className="font-display mt-6 text-4xl font-bold leading-[1.05] text-violet sm:text-6xl">
             Turn your photo into an{" "}
-            <span className="underline decoration-ink decoration-4 underline-offset-[6px]">
+            <span
+              className="anime-wordmark-trigger relative inline-block cursor-default underline decoration-violet decoration-4 underline-offset-[6px]"
+              tabIndex={0}
+            >
               anime character
+              <span className="anime-wordmark-popup" aria-hidden>
+                <Image
+                  src="/images/anime-studio-mark.png"
+                  alt=""
+                  width={54}
+                  height={54}
+                  className="anime-wordmark-popup-logo h-[54px] w-[54px] object-contain"
+                />
+                <span className="anime-wordmark-popup-dot anime-wordmark-popup-dot-cyan" />
+                <span className="anime-wordmark-popup-dot anime-wordmark-popup-dot-coral" />
+              </span>
             </span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted sm:text-lg">

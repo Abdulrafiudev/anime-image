@@ -13,11 +13,6 @@ export type GenerateInput = {
   imageDataUrl: string;
   /** Provider-agnostic img2img parameters (see lib/controls.ts). */
   params: Img2ImgParams;
-  /**
-   * Optional caller-supplied key for "bring your own key" mode. When present,
-   * the adapter should use it instead of the server env key. Never persisted.
-   */
-  apiKey?: string;
   /** Abort signal so a slow request can be cancelled. */
   signal?: AbortSignal;
 };

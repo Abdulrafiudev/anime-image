@@ -2,10 +2,7 @@
  * Client-side wrapper around the /api/convert proxy.
  *
  * Returns a usable image URL (or data URL) or throws a friendly Error the UI can
- * display. When the user supplies their own key (advanced mode), it is sent with
- * this single request and used server-side only for that call — never stored.
- * (OpenAI's API can't be called directly from the browser due to CORS, so BYOK
- * still routes through our own proxy rather than a third-party server.)
+ * display. Provider credentials remain server-side.
  */
 
 import type { Controls } from "./controls";
@@ -15,8 +12,6 @@ export type ConvertArgs = {
   presetId: string;
   controls: Controls;
   signal?: AbortSignal;
-  /** Advanced: the user's own provider key, held in memory only. */
-  byokKey?: string;
 };
 
 export async function convertImage({
@@ -24,7 +19,6 @@ export async function convertImage({
   presetId,
   controls,
   signal,
-  byokKey,
 }: ConvertArgs): Promise<string> {
   const res = await fetch("/api/convert", {
     method: "POST",
@@ -33,7 +27,6 @@ export async function convertImage({
       imageDataUrl,
       presetId,
       controls,
-      apiKey: byokKey || undefined,
     }),
     signal,
   });

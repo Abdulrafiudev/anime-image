@@ -91,9 +91,6 @@ export function Controls({ value, onChange }: Props) {
                 onChange={(e) =>
                   onChange({ ...value, [field.key]: Number(e.target.value) })
                 }
-                style={{
-                  background: `linear-gradient(to right, var(--color-violet) ${value[field.key]}%, var(--color-lavender) ${value[field.key]}%)`,
-                }}
               />
               <div
                 id={`${id}-hint`}

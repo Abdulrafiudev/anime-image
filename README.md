@@ -23,20 +23,16 @@ Open http://localhost:3000.
 
 > Without an `OPENAI_API_KEY`, the whole UI works (upload, styles, controls,
 > states) but the Convert call returns a friendly "provider not configured"
-> error. Add a key to generate real images — or use the in-app
-> **Advanced → bring your own key** panel to paste a key for the current session
-> only.
+> error. Add a server-side key to generate real images.
 
 ### Environment variables
 
 | Var                   | Required | Notes                                                             |
 | --------------------- | -------- | ----------------------------------------------------------------- |
-| `OPENAI_API_KEY`      | yes\*    | OpenAI key. **Server-side only** — never `NEXT_PUBLIC_`.          |
+| `OPENAI_API_KEY`      | yes      | OpenAI key. **Server-side only** — never `NEXT_PUBLIC_`.          |
 | `OPENAI_IMAGE_MODEL`  | no       | Override the model. Default `gpt-image-1`.                        |
 | `IMAGE_PROVIDER`      | no       | `openai` (default) or `fal`.                                      |
 | `FAL_KEY` / `FAL_MODEL` | no     | Only if `IMAGE_PROVIDER=fal`.                                     |
-
-\* Not required if every user brings their own key via the Advanced panel.
 
 > **Note on `gpt-image-1`:** OpenAI may require your organization to be
 > [verified](https://platform.openai.com/settings/organization/general) before

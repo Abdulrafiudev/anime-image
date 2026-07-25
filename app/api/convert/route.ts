@@ -4,10 +4,7 @@
  * The browser sends the source photo, the chosen preset id, and the fine
  * controls. This route builds the img2img parameters, reads the API key from a
  * server-side env var, calls the provider adapter, and returns the result URL.
- * The API key never leaves the server in default mode.
- *
- * Bring-your-own-key: if the client sends `apiKey`, it is forwarded to the
- * adapter for this single request only and never stored.
+ * The API key never leaves the server.
  */
 
 import { NextResponse } from "next/server";
@@ -29,7 +26,6 @@ type ConvertBody = {
   imageDataUrl?: string;
   presetId?: string;
   controls?: Partial<Controls>;
-  apiKey?: string;
 };
 
 export async function POST(req: Request) {
@@ -40,7 +36,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { imageDataUrl, presetId, controls, apiKey } = body;
+  const { imageDataUrl, presetId, controls } = body;
 
   if (!imageDataUrl || !/^data:image\/(png|jpeg|jpg|webp);base64,/.test(imageDataUrl)) {
     return NextResponse.json(
@@ -68,7 +64,6 @@ export async function POST(req: Request) {
     const { imageUrl } = await provider.generate({
       imageDataUrl,
       params,
-      apiKey: apiKey?.trim() || undefined,
       signal: controller.signal,
     });
 
