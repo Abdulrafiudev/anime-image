@@ -1,26 +1,107 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------ */
+/*  Brand design tokens — the single source of truth for the palette. */
+/*  Change a value here and it propagates through every component.     */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* Core brand colors — monochrome: white canvas, black accent.
+     NOTE: the `violet`/`lavender` utility names are kept for stability, but
+     they now hold the black accent + light-gray fills of the new brand. */
+  --color-ink: #111111; /* primary text (near-black) */
+  --color-surface: #ffffff; /* page + card background (white) */
+  --color-violet: #111111; /* ACCENT — black (buttons, active, focus, slider) */
+  --color-violet-700: #000000; /* accent hover/press (pure black) */
+  --color-pink: #e0245e; /* error/alert only (kept distinct) */
+  --color-lavender: #f1f1f3; /* soft gray fills / hovers */
+
+  /* Supporting neutrals */
+  --color-muted: #6a6a72; /* secondary text — AA on white */
+  --color-line: #e6e6ea; /* hairline borders / dividers */
+
+  /* Typography — wired to next/font CSS variables in layout.tsx */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display type gets tightened tracking for a crafted feel. */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Focus ring: always violet, always visible for keyboard users.
+   (An outline, not a box-shadow.) */
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-violet);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Range slider theming (violet track fill + tactile thumb, no shadow). */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-lavender);
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid var(--color-violet);
+  transition: transform 0.12s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid var(--color-violet);
+}
+
+/* Custom scrollbar for a tidy feel (desktop). */
+@media (pointer: fine) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+}
+
+/* Respect reduced-motion: neutralize transitions/animations. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,36 +1,152 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Anime Studio
 
-## Getting Started
+A premium, frontend-first web app that turns a photo into an anime-style
+character. Upload → pick a style → fine-tune → convert → compare before/after →
+download or share. No accounts, no database, nothing stored.
 
-First, run the development server:
+Built with **Next.js (App Router) + TypeScript**, **Tailwind CSS v4**, and
+**Framer Motion**. Image generation runs through **OpenAI** (`gpt-image-1`)
+behind a swappable provider adapter, called from a thin server proxy so the API
+key never reaches the browser.
+
+---
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # then paste your OPENAI_API_KEY
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> Without an `OPENAI_API_KEY`, the whole UI works (upload, styles, controls,
+> states) but the Convert call returns a friendly "provider not configured"
+> error. Add a key to generate real images — or use the in-app
+> **Advanced → bring your own key** panel to paste a key for the current session
+> only.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Environment variables
 
-## Learn More
+| Var                   | Required | Notes                                                             |
+| --------------------- | -------- | ----------------------------------------------------------------- |
+| `OPENAI_API_KEY`      | yes\*    | OpenAI key. **Server-side only** — never `NEXT_PUBLIC_`.          |
+| `OPENAI_IMAGE_MODEL`  | no       | Override the model. Default `gpt-image-1`.                        |
+| `IMAGE_PROVIDER`      | no       | `openai` (default) or `fal`.                                      |
+| `FAL_KEY` / `FAL_MODEL` | no     | Only if `IMAGE_PROVIDER=fal`.                                     |
 
-To learn more about Next.js, take a look at the following resources:
+\* Not required if every user brings their own key via the Advanced panel.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+> **Note on `gpt-image-1`:** OpenAI may require your organization to be
+> [verified](https://platform.openai.com/settings/organization/general) before
+> this model is available, and high-quality edits can take ~15–40s. On Vercel
+> Hobby (60s function cap) prefer the medium/low **Line & detail** setting or
+> upgrade the plan; `maxDuration` in the route is set to 120s.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Deploying to Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push this repo to GitHub and import it in Vercel.
+2. Add `OPENAI_API_KEY` under **Project → Settings → Environment Variables**.
+3. Deploy. No other configuration is needed.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Project map
+
+```
+app/
+  layout.tsx              Fonts (Space Grotesk + Plus Jakarta Sans) + metadata
+  page.tsx                Single-page orchestrator: session state + flow
+  globals.css             Tailwind import + brand design tokens  ← BRAND LIVES HERE
+  api/convert/route.ts    Secure proxy → provider adapter (reads OPENAI_API_KEY)
+components/               UI: Upload, StyleGallery, Controls, BeforeAfter, …
+lib/
+  presets.ts              STYLE_PRESETS array  ← ADD STYLES HERE
+  controls.ts             Fine controls → provider-agnostic params (+ prompt words)
+  image.ts                Client-side validate + downscale
+  convertClient.ts        Client calls to the proxy
+  providers/
+    types.ts              ImageProvider adapter contract
+    openai.ts             OpenAI gpt-image-1 adapter (default)  ← SWAP PROVIDER HERE
+    fal.ts                fal.ai adapter (alternative)
+    index.ts              Provider selection (IMAGE_PROVIDER)
+```
+
+---
+
+## How to…
+
+### Add or edit a style preset
+
+Everything lives in [`lib/presets.ts`](lib/presets.ts). Append one object to
+`STYLE_PRESETS`:
+
+```ts
+{
+  id: "my-style",
+  label: "My Style",
+  description: "One-line description shown on the card.",
+  basePrompt: "generic descriptive prompt (no franchises/studios by name)",
+  negativePrompt: SHARED_NEGATIVE,        // or a custom string
+  recommendedStrength: 0.6,               // 0.30–0.90
+  swatch: ["#7C5CFF", "#FF5FA2"],         // first color tints the card thumbnail
+}
+```
+
+The gallery, requests, and defaults pick it up automatically — no other edits.
+
+### Swap the image provider
+
+Adapters implement the `ImageProvider` contract in
+[`lib/providers/types.ts`](lib/providers/types.ts). To move to Replicate,
+Stability, or back to fal.ai:
+
+1. Create `lib/providers/<name>.ts` exporting a `create…Provider()` that
+   implements `generate()`.
+2. Add a case in [`lib/providers/index.ts`](lib/providers/index.ts) and select
+   it with `IMAGE_PROVIDER`.
+
+The UI and the `/api/convert` route are provider-agnostic and need no changes.
+Note that `gpt-image-1` has no numeric strength/guidance knob — stylization is
+carried in the prompt (see below); the `strength`/`guidanceScale` fields exist
+for diffusion adapters like fal.
+
+### Change the brand tokens
+
+The brand colors and fonts are defined once in
+[`app/globals.css`](app/globals.css) under `@theme`. Change a value there and it
+propagates everywhere. Fonts are loaded via `next/font/google` in
+[`app/layout.tsx`](app/layout.tsx). The UI is a flat, light theme — no gradients
+or drop shadows.
+
+---
+
+## How the fine controls map
+
+Defined in [`lib/controls.ts`](lib/controls.ts). The four 0–100 sliders fold into
+provider-agnostic params **and** prompt wording, so they work whether or not the
+provider has numeric knobs:
+
+- **Stylization strength** → diffusion `strength` (0.30–0.90) **and** a
+  "subtle ↔ fully reimagined" phrase in the prompt (what OpenAI uses).
+- **Identity preservation** → caps `strength` and appends likeness-preserving
+  prompt terms.
+- **Line & detail** → guidance scale, an OpenAI `quality` hint, and detail
+  prompt terms.
+- **Color vibrancy** → muted ↔ vivid prompt terms.
+
+---
+
+## Notes on privacy & security
+
+- In default mode the API key is read server-side in `app/api/convert/route.ts`
+  and never sent to the browser.
+- Bring-your-own-key is **off by default**, kept only in React state (memory),
+  never written to `localStorage`. It is sent with a single conversion request
+  and used server-side only for that call (OpenAI can't be called directly from
+  the browser due to CORS).
+- Uploaded photos are downscaled client-side and processed on demand — the app
+  has no database and stores nothing.
