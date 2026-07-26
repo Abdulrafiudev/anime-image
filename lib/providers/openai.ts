@@ -43,8 +43,10 @@ export function createOpenAIProvider(): ImageProvider {
       const { blob, filename } = dataUrlToBlob(imageDataUrl);
 
       // Give the edit model a clear directive; the descriptive look + slider
-      // intent already live in params.prompt.
-      const prompt = `Redraw the main subject of this photograph as ${params.prompt}. Keep the original pose, framing, and composition. Full anime illustration, not a photo.`;
+      // intent already live in params.prompt. Note the explicit "every person"
+      // instruction: without it the model tends to redraw only one subject and
+      // leave the rest of the image untouched.
+      const prompt = `Convert this entire photograph into ${params.prompt}. Redraw EVERY person and character in the image as anime — include all of them, leave no one as a photo and do not crop anyone out. Preserve each subject's pose and position and the overall composition. The whole image should be one cohesive anime illustration, not a photo.`;
 
       const form = new FormData();
       form.append("model", model);

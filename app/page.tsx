@@ -14,11 +14,7 @@ import {
   DEFAULT_CONTROLS,
   type Controls as ControlsState,
 } from "@/lib/controls";
-import {
-  DEFAULT_PRESET_ID,
-  getPreset,
-  type StylePreset,
-} from "@/lib/presets";
+import { DEFAULT_PRESET_ID, getPreset, type StylePreset } from "@/lib/presets";
 import { convertImage } from "@/lib/convertClient";
 
 type Status = "idle" | "converting" | "done" | "error";
@@ -41,7 +37,9 @@ export default function Home() {
   const scrollToStage = useCallback(() => {
     const el = stageRef.current;
     if (!el) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }, []);
 
@@ -86,7 +84,9 @@ export default function Home() {
         setStatus("idle");
         return;
       }
-      setError((err as Error)?.message || "Conversion failed. Please try again.");
+      setError(
+        (err as Error)?.message || "Conversion failed. Please try again.",
+      );
       setStatus("error");
     } finally {
       abortRef.current = null;
@@ -245,9 +245,6 @@ export default function Home() {
                   </>
                 )}
               </motion.button>
-              <p className="text-center text-xs text-muted">
-                Secure server proxy · your key stays private
-              </p>
             </section>
           </div>
         )}
@@ -298,8 +295,8 @@ function Landing({
             </span>
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted sm:text-lg">
-            Upload a photo, pick from eleven hand-tuned styles, fine-tune the look,
-            and compare before &amp; after. No sign-up, no clutter.
+            Upload a photo, pick from eleven hand-tuned styles, fine-tune the
+            look, and compare before &amp; after. No sign-up, no clutter.
           </p>
         </motion.div>
       </div>
@@ -319,7 +316,7 @@ function Landing({
         <Reassure>11 anime styles</Reassure>
         <Reassure>Fine control sliders</Reassure>
         <Reassure>Before / after compare</Reassure>
-        <Reassure>Private — nothing stored</Reassure>
+        <Reassure>Photos never stored</Reassure>
       </div>
     </div>
   );
@@ -328,7 +325,13 @@ function Landing({
 function Reassure({ children }: { children: React.ReactNode }) {
   return (
     <span className="flex items-center gap-1.5">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-violet">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        className="text-violet"
+      >
         <path
           d="M5 13l4 4L19 7"
           stroke="currentColor"

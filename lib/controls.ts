@@ -93,14 +93,14 @@ export function buildParams(
 
   const identityTerms =
     identity01 > 0.6
-      ? "preserve the person's facial features and likeness, keep recognizable identity"
+      ? "preserve each person's facial features and likeness, keep everyone recognizable"
       : "";
 
   // Encode stylization intent into words too, so providers without a numeric
   // strength knob (e.g. OpenAI gpt-image-1) still honor the slider.
   const stylizationTerms =
     stylization01 > 0.66
-      ? "fully reimagined as an anime character, heavily stylized"
+      ? "fully reimagined in anime style, heavily stylized"
       : stylization01 < 0.33
         ? "lightly anime-stylized while keeping the photo's realism"
         : "clearly anime-stylized";

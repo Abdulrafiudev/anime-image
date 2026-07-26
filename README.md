@@ -136,6 +136,36 @@ provider has numeric knobs:
 
 ---
 
+## Admin usage dashboard (optional)
+
+A password-protected dashboard at **`/admin`** shows successful/failed
+generation counts, a per-style breakdown, a **world map** of where requests come
+from, a top-countries list, and a recent-activity table (time, source IP,
+location, device, style, result, latency). It's **metadata only — no images are
+stored.** Device (type · OS · browser) is parsed from the request's User-Agent
+by a tiny dependency-free parser (`lib/useragent.ts`).
+
+The map uses `react-simple-maps` with the world geography bundled locally from
+the `world-atlas` data package (no runtime CDN). Geolocation comes free from
+Vercel's `x-vercel-ip-*` request headers — so **the map only populates once
+deployed on Vercel** (there's no geo data on `localhost`).
+
+- Storage is **Upstash Redis** over its REST API (`lib/analytics.ts`) — a managed
+  serverless datastore reached with plain `fetch`, no server to run and no extra
+  dependency. Create a free DB at <https://console.upstash.com>.
+- Set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` to start collecting.
+  If unset, tracking **no-ops** and conversions are unaffected.
+- Set `ADMIN_PASSWORD` to enable the dashboard. If unset, `/admin` is fully
+  locked (the API returns 503). The password is checked server-side in
+  `app/api/admin/stats/route.ts`.
+- Recent events are capped at the last 200 (via `LTRIM`); counters persist.
+
+> **Privacy:** IP addresses are personal data (GDPR/CCPA). If you enable this,
+> update the app's "nothing stored" copy, add a privacy notice, keep `/admin`
+> access-controlled, and set a retention policy that suits your obligations.
+
+---
+
 ## Notes on privacy & security
 
 - In default mode the API key is read server-side in `app/api/convert/route.ts`
@@ -144,5 +174,7 @@ provider has numeric knobs:
   never written to `localStorage`. It is sent with a single conversion request
   and used server-side only for that call (OpenAI can't be called directly from
   the browser due to CORS).
-- Uploaded photos are downscaled client-side and processed on demand — the app
-  has no database and stores nothing.
+- Uploaded photos are downscaled client-side and processed on demand — they are
+  **never stored**.
+- If the admin dashboard is enabled, per-generation **metadata** (timestamp,
+  style, source IP, latency, success/fail) is stored in Upstash — see above.

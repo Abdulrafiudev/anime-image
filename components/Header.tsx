@@ -7,7 +7,7 @@ export function Header() {
         <Logo />
         <span className="hidden items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs text-muted sm:flex">
           <span className="h-1.5 w-1.5 rounded-full bg-violet" />
-          No account · nothing stored
+          No account · photos never stored
         </span>
       </div>
     </header>

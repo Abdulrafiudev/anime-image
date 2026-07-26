@@ -11,6 +11,46 @@ import { NextResponse } from "next/server";
 import { getPreset } from "@/lib/presets";
 import { buildParams, DEFAULT_CONTROLS, type Controls } from "@/lib/controls";
 import { getProvider, ProviderError } from "@/lib/providers";
+import { recordGeneration } from "@/lib/analytics";
+import { parseUserAgent } from "@/lib/useragent";
+
+/** Best-effort client IP from proxy headers (Vercel sets x-forwarded-for). */
+function clientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for");
+  if (fwd) return fwd.split(",")[0]!.trim();
+  return req.headers.get("x-real-ip")?.trim() || "unknown";
+}
+
+/**
+ * Best-effort geolocation. Vercel injects these headers automatically in
+ * production — no external API or dependency. Empty locally.
+ */
+function clientGeo(req: Request): {
+  country?: string;
+  city?: string;
+  lat?: number;
+  lon?: number;
+} {
+  const h = req.headers;
+  const dec = (v: string | null) => {
+    if (!v) return undefined;
+    try {
+      return decodeURIComponent(v);
+    } catch {
+      return v;
+    }
+  };
+  const num = (v: string | null) => {
+    const n = Number(v);
+    return v && Number.isFinite(n) ? n : undefined;
+  };
+  return {
+    country: h.get("x-vercel-ip-country")?.trim() || undefined,
+    city: dec(h.get("x-vercel-ip-city")),
+    lat: num(h.get("x-vercel-ip-latitude")),
+    lon: num(h.get("x-vercel-ip-longitude")),
+  };
+}
 
 export const runtime = "nodejs";
 // gpt-image-1 can take a while at high quality. Vercel caps this per plan
@@ -58,6 +98,10 @@ export async function POST(req: Request) {
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const ip = clientIp(req);
+  const geo = clientGeo(req);
+  const device = parseUserAgent(req.headers.get("user-agent"));
+  const startedAt = Date.now();
 
   try {
     const provider = getProvider();
@@ -67,8 +111,28 @@ export async function POST(req: Request) {
       signal: controller.signal,
     });
 
+    // Fire-and-forget usage tracking (never throws, no-ops if unconfigured).
+    await recordGeneration({
+      t: startedAt,
+      ip,
+      ...geo,
+      ...device,
+      presetId: preset.id,
+      ok: true,
+      ms: Date.now() - startedAt,
+    });
+
     return NextResponse.json({ imageUrl, provider: provider.name });
   } catch (err) {
+    void recordGeneration({
+      t: startedAt,
+      ip,
+      ...geo,
+      ...device,
+      presetId: preset.id,
+      ok: false,
+      ms: Date.now() - startedAt,
+    });
     if (err instanceof ProviderError) {
       return NextResponse.json(
         { error: err.message, retryable: err.retryable },
