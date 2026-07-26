@@ -255,8 +255,6 @@ export default function Home() {
   );
 }
 
-/* --------------------------- Landing (no image) --------------------------- */
-
 function Landing({
   onImageReady,
 }: {
