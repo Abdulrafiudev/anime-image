@@ -17,20 +17,30 @@
 
 import { countryName } from "./countries";
 
-const URL_ENV = process.env.UPSTASH_REDIS_REST_URL?.replace(/\/$/, "");
-const TOKEN_ENV = process.env.UPSTASH_REDIS_REST_TOKEN;
+/**
+ * Read the Upstash config at call time (not module load) and trim stray
+ * whitespace/newlines — pasted tokens sometimes carry a trailing newline, which
+ * would otherwise corrupt the Authorization header.
+ */
+function redisConfig(): { url?: string; token?: string } {
+  const url = process.env.UPSTASH_REDIS_REST_URL?.trim().replace(/\/$/, "");
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+  return { url: url || undefined, token: token || undefined };
+}
 
 export function analyticsConfigured(): boolean {
-  return Boolean(URL_ENV && TOKEN_ENV);
+  const { url, token } = redisConfig();
+  return Boolean(url && token);
 }
 
 /** Run a Redis pipeline over Upstash's REST endpoint. Returns raw results. */
 async function pipeline(commands: (string | number)[][]): Promise<unknown[]> {
-  if (!analyticsConfigured()) return [];
-  const res = await fetch(`${URL_ENV}/pipeline`, {
+  const { url, token } = redisConfig();
+  if (!url || !token) return [];
+  const res = await fetch(`${url}/pipeline`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${TOKEN_ENV}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(commands),

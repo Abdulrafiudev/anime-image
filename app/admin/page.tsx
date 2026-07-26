@@ -49,7 +49,8 @@ export default function AdminPage() {
       cache: "no-store",
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data?.error || `Request failed (${res.status}).`);
+    if (!res.ok)
+      throw new Error(data?.error || `Request failed (${res.status}).`);
     return data;
   }, []);
 
@@ -82,7 +83,10 @@ export default function AdminPage() {
       setLoading(true);
       setError(null);
       try {
-        const summaryData = (await authFetch(pw, "/api/admin/stats")) as Summary;
+        const summaryData = (await authFetch(
+          pw,
+          "/api/admin/stats",
+        )) as Summary;
         setSummary(summaryData);
         setTotal(summaryData.total ?? 0);
         await fetchPage(pw, 1);
@@ -100,7 +104,9 @@ export default function AdminPage() {
   if (!authed) {
     return (
       <main className="mx-auto flex min-h-dvh w-[90%] max-w-md flex-col justify-center py-16">
-        <h1 className="font-display text-2xl font-bold text-ink">Usage dashboard</h1>
+        <h1 className="font-display text-2xl font-bold text-ink">
+          Usage dashboard
+        </h1>
         <p className="mt-1 text-sm text-muted">
           Enter the admin password to view generation stats.
         </p>
@@ -152,8 +158,12 @@ export default function AdminPage() {
     <main className="mx-auto w-[90%] max-w-5xl py-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-ink">Usage dashboard</h1>
-          <p className="mt-0.5 text-sm text-muted">Successful generations, styles, and source IPs.</p>
+          <h1 className="font-display text-2xl font-bold text-ink">
+            Usage dashboard
+          </h1>
+          <p className="mt-0.5 text-sm text-muted">
+            Successful generations, styles, and source IPs.
+          </p>
         </div>
         <button
           type="button"
@@ -173,8 +183,8 @@ export default function AdminPage() {
       )}
 
       <p className="mt-6 rounded-xl border border-line bg-lavender/40 px-4 py-2.5 text-xs text-muted">
-        Reminder: IP addresses are personal data. Keep this page access-controlled
-        and mind your retention/privacy obligations.
+        Reminder: IP addresses are personal data. Keep this page
+        access-controlled and mind your retention/privacy obligations.
       </p>
 
       {/* Totals */}
@@ -191,7 +201,9 @@ export default function AdminPage() {
           By style
         </h2>
         {styleRows.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">No successful generations yet.</p>
+          <p className="mt-2 text-sm text-muted">
+            No successful generations yet.
+          </p>
         ) : (
           <div className="mt-3 space-y-2">
             {styleRows.map(([id, count]) => (
@@ -202,7 +214,9 @@ export default function AdminPage() {
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-lavender">
                   <div
                     className="h-full rounded-full bg-violet"
-                    style={{ width: `${maxStyle ? (count / maxStyle) * 100 : 0}%` }}
+                    style={{
+                      width: `${maxStyle ? (count / maxStyle) * 100 : 0}%`,
+                    }}
                   />
                 </div>
                 <span className="w-10 shrink-0 text-right text-sm tabular-nums text-muted">
@@ -239,8 +253,12 @@ export default function AdminPage() {
               <ul className="mt-3 space-y-2">
                 {countryRows.slice(0, 8).map(([code, count]) => (
                   <li key={code} className="flex items-center gap-2 text-sm">
-                    <span className="text-base leading-none">{countryFlag(code)}</span>
-                    <span className="flex-1 truncate text-ink">{countryName(code)}</span>
+                    <span className="text-base leading-none">
+                      {countryFlag(code)}
+                    </span>
+                    <span className="flex-1 truncate text-ink">
+                      {countryName(code)}
+                    </span>
                     <span className="tabular-nums text-muted">{count}</span>
                   </li>
                 ))}
@@ -283,7 +301,9 @@ export default function AdminPage() {
                     <td className="whitespace-nowrap px-4 py-2.5 text-muted">
                       {new Date(e.t).toLocaleString()}
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-xs text-ink">{e.ip}</td>
+                    <td className="px-4 py-2.5 font-mono text-xs text-ink">
+                      {e.ip}
+                    </td>
                     <td className="whitespace-nowrap px-4 py-2.5 text-ink">
                       {e.country ? (
                         <span className="flex items-center gap-1.5">
@@ -308,7 +328,9 @@ export default function AdminPage() {
                         <span className="text-muted">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-2.5 text-ink">{getPreset(e.presetId).label}</td>
+                    <td className="px-4 py-2.5 text-ink">
+                      {getPreset(e.presetId).label}
+                    </td>
                     <td className="px-4 py-2.5">
                       <span
                         className={
@@ -333,8 +355,8 @@ export default function AdminPage() {
         {total > 0 && (
           <div className="mt-3 flex items-center justify-between gap-3">
             <p className="text-xs text-muted">
-              Showing {pageStart + 1}–{pageStart + events.length} of {total} events
-              (last 200 retained)
+              Showing {pageStart + 1}–{pageStart + events.length} of {total}{" "}
+              events (last 200 retained)
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -367,8 +389,12 @@ export default function AdminPage() {
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-2xl border border-line bg-white p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className="font-display mt-1 text-2xl font-bold text-ink tabular-nums">{value}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-muted">
+        {label}
+      </p>
+      <p className="font-display mt-1 text-2xl font-bold text-ink tabular-nums">
+        {value}
+      </p>
     </div>
   );
 }
